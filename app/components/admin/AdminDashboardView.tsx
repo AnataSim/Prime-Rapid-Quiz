@@ -190,6 +190,7 @@ export default function AdminDashboardView({ logs, rooms: propRooms }: { logs?: 
                           src={user.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`} 
                           alt={user.fullName} 
                           className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
                         />
                       </div>
                       <div>

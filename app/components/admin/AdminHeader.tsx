@@ -51,6 +51,7 @@ export default function AdminHeader({ activeTab, setActiveTab, user }: HeaderPro
             src={user?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email || "Admin"}`} 
             alt="Admin avatar" 
             className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
           />
         </div>
       </div>

@@ -53,6 +53,7 @@ export default function CreatorHeader({ activeTab, setActiveTab, user }: HeaderP
             src={user?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email || "Creator"}`} 
             alt="Creator avatar" 
             className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
           />
         </div>
       </button>

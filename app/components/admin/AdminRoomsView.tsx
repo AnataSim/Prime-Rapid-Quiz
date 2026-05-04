@@ -8,9 +8,6 @@ import {
   Monitor,
   Users,
   ShieldCheck,
-  Eye,
-  XCircle,
-  Pencil,
   Trash2,
   Calendar,
   Filter
@@ -186,22 +183,13 @@ export default function AdminRoomsView({ rooms = [], setRooms }: { rooms?: any[]
                 </td>
                 <td className="px-10 py-6">
                   <div className="flex items-center justify-center gap-4 text-gray-400">
-                    {room.status === 'LIVE' ? (
-                      <>
-                        <button className="hover:text-[#2563EB] transition-colors"><Eye size={18} /></button>
-                        <button onClick={() => handleDeleteRoom(room.id)} className="hover:text-red-500 transition-colors"><XCircle size={18} /></button>
-                      </>
-                    ) : room.status === 'SCHEDULED' ? (
-                      <>
-                        <button className="hover:text-[#2563EB] transition-colors"><Pencil size={18} /></button>
-                        <button onClick={() => handleDeleteRoom(room.id)} className="hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
-                      </>
-                    ) : (
-                      <>
-                        <button className="hover:text-[#2563EB] transition-colors"><Monitor size={18} /></button>
-                        <button onClick={() => handleDeleteRoom(room.id)} className="hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
-                      </>
-                    )}
+                    <button 
+                      onClick={() => handleDeleteRoom(room.id)} 
+                      className="hover:text-red-500 transition-colors"
+                      title="Delete Room"
+                    >
+                      <Trash2 size={18} />
+                    </button>
                   </div>
                 </td>
               </tr>

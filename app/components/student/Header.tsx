@@ -58,6 +58,7 @@ export default function Header({ activeTab, setActiveTab, user }: HeaderProps) {
             src={user?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email || "Felix"}`} 
             alt="User avatar" 
             className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
           />
         </div>
       </div>
