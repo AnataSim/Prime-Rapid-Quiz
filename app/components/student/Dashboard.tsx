@@ -60,6 +60,14 @@ export default function Dashboard({ onLogout, rooms = [], setLogs, logs = [], us
     
     if (!foundRoom) return false;
 
+    // BLOCK JOINING ENDED ROOMS
+    if (foundRoom.status === "ENDED") {
+      setJoinError("Room ini sudah berakhir. Kamu tidak bisa join lagi.");
+      setRejoinStatus("none"); 
+      setTargetRoomId(null); // Clear target room to prevent rejoin requests
+      return false;
+    }
+    
     if (user?.uid) {
       // 1. Check if user is already a participant
       const participantRef = doc(db, "rooms", foundRoom.id, "participants", user.uid);
@@ -76,6 +84,11 @@ export default function Dashboard({ onLogout, rooms = [], setLogs, logs = [], us
         if (rejoinData?.status === "approved") {
           // Allowed to rejoin!
           console.log("Rejoin approved, entering room...");
+          setRejoinStatus("none");
+          
+          // Delete the request so it's a one-time use pass
+          const rejoinRef = doc(db, "rooms", foundRoom.id, "rejoinRequests", user.uid);
+          await deleteDoc(rejoinRef);
         } else {
           // Not approved yet, show re-join request flow
           setTargetRoomId(foundRoom.id);
@@ -92,7 +105,14 @@ export default function Dashboard({ onLogout, rooms = [], setLogs, logs = [], us
 
       // If we reach here, it's either a first-time join or an approved rejoin
       setActiveRoom(foundRoom);
-      setQuizStatus("LOBBY");
+      
+      // IF LIVE, GO STRAIGHT TO ACTIVE
+      if (foundRoom.status === "LIVE") {
+        setQuizStatus("ACTIVE");
+      } else {
+        setQuizStatus("LOBBY");
+      }
+      
       setActiveTab("quiz");
 
       // Register participant in real-time
@@ -195,6 +215,10 @@ export default function Dashboard({ onLogout, rooms = [], setLogs, logs = [], us
           finishedAt: serverTimestamp()
         });
 
+        // Delete rejoin request so it must be requested again for future attempts
+        const rejoinRef = doc(db, "rooms", currentRoom.id, "rejoinRequests", user.uid);
+        await deleteDoc(rejoinRef);
+
         // 3. Fetch all participants to calculate current rank and percentile
         const participantsSnapshot = await getDocs(query(collection(db, "rooms", currentRoom.id, "participants")));
         const participantsData = participantsSnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() as any }));
@@ -267,6 +291,7 @@ export default function Dashboard({ onLogout, rooms = [], setLogs, logs = [], us
           joinError={joinError}
           rejoinStatus={rejoinStatus}
           onRequestRejoin={handleRequestRejoin}
+          showRejoinButton={rejoinStatus === "none" && !!targetRoomId}
         />
       );
     }
@@ -280,6 +305,7 @@ export default function Dashboard({ onLogout, rooms = [], setLogs, logs = [], us
             joinError={joinError}
             rejoinStatus={rejoinStatus}
             onRequestRejoin={handleRequestRejoin}
+            showRejoinButton={rejoinStatus === "none" && !!targetRoomId}
           />
         );
       }

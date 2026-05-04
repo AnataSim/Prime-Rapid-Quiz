@@ -14,6 +14,7 @@ interface JoinRoomProps {
   joinError?: string | null;
   rejoinStatus?: "none" | "pending" | "approved";
   onRequestRejoin?: () => void;
+  showRejoinButton?: boolean;
 }
 
 interface RoomHistory {
@@ -46,7 +47,7 @@ function timeAgo(timestamp: any): string {
   return date.toLocaleDateString();
 }
 
-export default function JoinRoom({ onJoin, user, joinError, rejoinStatus, onRequestRejoin }: JoinRoomProps) {
+export default function JoinRoom({ onJoin, user, joinError, rejoinStatus, onRequestRejoin, showRejoinButton }: JoinRoomProps) {
   const [code, setCode] = useState("");
   const [error, setError] = useState(false);
   const [history, setHistory] = useState<RoomHistory[]>([]);
@@ -148,7 +149,7 @@ export default function JoinRoom({ onJoin, user, joinError, rejoinStatus, onRequ
                     </p>
                   </div>
                   
-                  {rejoinStatus === "none" && onRequestRejoin && (
+                  {showRejoinButton && onRequestRejoin && (
                     <button 
                       onClick={onRequestRejoin}
                       className="w-full bg-white border border-red-200 text-red-600 hover:bg-red-600 hover:text-white text-[11px] font-black py-3 rounded-xl transition-all uppercase tracking-widest"

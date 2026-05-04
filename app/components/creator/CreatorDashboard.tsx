@@ -69,7 +69,7 @@ export default function CreatorDashboard({ onLogout, rooms, setRooms, user }: { 
         await updateDoc(roomRef, {
           questions: quizData.questions || [],
           questionsCount: quizData.totalQuestions || 0,
-          status: "LIVE"
+          status: "WAITING"
         });
       }
       
@@ -84,7 +84,7 @@ export default function CreatorDashboard({ onLogout, rooms, setRooms, user }: { 
         subtitle: `Created: ${new Date().toLocaleDateString()} • ${quizData.totalQuestions || 0} Questions`,
         creator: "Quiz Creator",
         participantsCount: 0,
-        status: "LIVE",
+        status: "WAITING",
         avatar: finalTitle ? finalTitle.substring(0, 2).toUpperCase() : "NQ",
         questions: quizData.questions || []
       };

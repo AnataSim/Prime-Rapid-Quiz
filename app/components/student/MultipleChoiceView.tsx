@@ -46,22 +46,7 @@ export default function MultipleChoiceView({
   const gridCols = isLongOptions ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2";
 
   return (
-    <div className="flex-1 flex flex-col gap-10">
-      <div className="bg-white rounded-[3rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.06)] border border-white p-12 lg:p-16 space-y-12 relative overflow-hidden group">
-        
-        {/* Hard Mode Badge */}
-        <div className="absolute top-10 right-10 flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full">
-          <Zap size={14} className="text-primary fill-primary" />
-          <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Hard Mode (+50 XP)</span>
-        </div>
-
-        <div className="max-w-4xl">
-          <h3 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-gray-900 leading-snug tracking-tight break-all">
-            {question}
-          </h3>
-        </div>
-
-        <div className={`grid ${gridCols} gap-6`}>
+    <div className={`grid ${gridCols} gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500`}>
           {options.map((option, idx) => (
             <button
               key={idx}
@@ -90,8 +75,6 @@ export default function MultipleChoiceView({
               )}
             </button>
           ))}
-        </div>
-      </div>
     </div>
   );
 }

@@ -14,22 +14,8 @@ export default function EssayView({ question, targetWords, value = "", onChange 
   const wordCount = value.trim() === "" ? 0 : value.trim().split(/\s+/).length;
 
   return (
-    <div className="flex-1 flex flex-col gap-10">
-      <div className="bg-white rounded-[3rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.06)] border border-white p-12 space-y-10 relative overflow-hidden group">
-        
-        {/* Hard Mode Badge */}
-        <div className="absolute top-10 right-10 flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full">
-          <Zap size={14} className="text-primary fill-primary" />
-          <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Hard Mode (+50 XP)</span>
-        </div>
-
-        <div className="max-w-2xl">
-          <h3 className="text-2xl font-extrabold text-gray-900 leading-relaxed tracking-tight break-all">
-            {question}
-          </h3>
-        </div>
-
-        <div className="relative group">
+    <div className="bg-white rounded-[3rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.06)] border border-white p-12 space-y-10 relative overflow-hidden group animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="relative group">
           <textarea 
             value={value}
             onChange={(e) => onChange && onChange(e.target.value)}
@@ -53,7 +39,6 @@ export default function EssayView({ question, targetWords, value = "", onChange 
             Target: {targetWords.min} - {targetWords.max} Words
           </span>
         </div>
-      </div>
     </div>
   );
 }

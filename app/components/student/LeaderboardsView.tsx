@@ -26,7 +26,9 @@ interface RoomHistory {
 export default function LeaderboardsView({ user }: { user?: any }) {
   const [history, setHistory] = useState<RoomHistory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedRoom, setSelectedRoom] = useState<RoomHistory | null>(null);
+  const itemsPerPage = 6;
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -91,6 +93,9 @@ export default function LeaderboardsView({ user }: { user?: any }) {
     ? history.find(item => "#" + item.rank.toString().padStart(2, '0') === highestRank)?.roomTitle 
     : "No Data";
 
+  const totalPages = Math.ceil(history.length / itemsPerPage);
+  const paginatedHistory = history.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -110,10 +115,15 @@ export default function LeaderboardsView({ user }: { user?: any }) {
           </div>
           <h2 className="text-6xl font-black text-[#1A2B56] tracking-tight">Room History</h2>
         </div>
-        <button className="bg-white px-8 py-3 rounded-full shadow-sm border border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-3">
-          Recent
-          <ChevronDown size={14} />
-        </button>
+        <div className="flex items-center gap-4">
+           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+            Page {currentPage} of {totalPages || 1}
+           </span>
+          <button className="bg-white px-8 py-3 rounded-full shadow-sm border border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-3">
+            Recent
+            <ChevronDown size={14} />
+          </button>
+        </div>
       </div>
 
       {/* Top Stats Cards */}
@@ -144,8 +154,8 @@ export default function LeaderboardsView({ user }: { user?: any }) {
       </div>
 
       {/* History Grid */}
-      <div className="grid grid-cols-3 gap-8 pb-20">
-        {history.map((room) => (
+      <div className="grid grid-cols-3 gap-8">
+        {paginatedHistory.map((room) => (
           <div 
             key={room.id} 
             onClick={() => setSelectedRoom(room)}
@@ -189,6 +199,51 @@ export default function LeaderboardsView({ user }: { user?: any }) {
         ))}
       </div>
 
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-6 pb-12">
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+            className={`px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all ${
+              currentPage === 1 
+                ? "bg-gray-50 text-gray-300 cursor-not-allowed" 
+                : "bg-white text-[#1A2B56] border border-gray-100 hover:shadow-lg shadow-sm"
+            }`}
+          >
+            Previous
+          </button>
+          
+          <div className="flex items-center gap-3">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                onClick={() => setCurrentPage(p)}
+                className={`w-12 h-12 rounded-2xl text-[11px] font-black transition-all ${
+                  currentPage === p 
+                    ? "bg-primary text-white shadow-xl shadow-primary/20" 
+                    : "bg-white text-[#1A2B56] border border-gray-100 hover:bg-gray-50"
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+            className={`px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all ${
+              currentPage === totalPages 
+                ? "bg-gray-50 text-gray-300 cursor-not-allowed" 
+                : "bg-white text-[#1A2B56] border border-gray-100 hover:shadow-lg shadow-sm"
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      )}
+
       {/* Detail Modal */}
       {selectedRoom && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-[#1A2B56]/40 backdrop-blur-md animate-in fade-in duration-300">
@@ -217,17 +272,17 @@ export default function LeaderboardsView({ user }: { user?: any }) {
                    <div className="flex flex-col gap-8">
                      <LeaderboardTable room={{ id: selectedRoom.roomId }} user={user} />
                      <AccuracyAnalytics data={{ 
-                       score: selectedRoom.accuracy, 
-                       totalTimeMs: selectedRoom.totalTimeMs,
-                       answers: selectedRoom.answers, 
-                       room: selectedRoom.roomData 
+                       score: (selectedRoom as any).accuracy, 
+                       totalTimeMs: (selectedRoom as any).totalTimeMs,
+                       answers: (selectedRoom as any).answers, 
+                       room: (selectedRoom as any).roomData 
                      }} />
                    </div>
                 </div>
 
                 {/* Right Column: Question Review */}
                 <div className="space-y-8">
-                  <QuestionReview data={{ answers: selectedRoom.answers, room: selectedRoom.roomData || { questions: [] }, essayGrades: (selectedRoom as any).essayGrades || {} }} />
+                  <QuestionReview data={{ answers: (selectedRoom as any).answers, room: (selectedRoom as any).roomData || { questions: [] }, essayGrades: (selectedRoom as any).essayGrades || {} }} />
                 </div>
               </div>
             </div>

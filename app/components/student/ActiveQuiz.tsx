@@ -237,28 +237,20 @@ export default function ActiveQuiz({ onFinish, room, user }: ActiveQuizProps) {
 
         {/* Dynamic Content */}
         <div className="flex-1">
-          {current.type === "KRA" && (
+          {current.type === "KRA" ? (
             <KraepelinQuiz 
               onComplete={(responses) => handleNext(responses)} 
               totalQuestions={current.kraepelin?.total ? parseInt(current.kraepelin.total, 10) : 1} 
               settings={current.kraepelin} 
             />
-          )}
-          {current.type === "ESS" && (
-            <EssayView 
-              question={current.question || ""} 
-              targetWords={current.targetWords || { min: 10, max: 500 }} 
-              value={studentAnswers[currentIdx] || ""}
-              onChange={(val: string) => setStudentAnswers({ ...studentAnswers, [currentIdx]: val })}
-            />
-          )}
-          {(current.type === "MCQ" || current.type === "CHK") && (
+          ) : (
             <div className="space-y-8">
+              {/* Centralized Question Header */}
               <div className="flex items-center justify-between gap-6 overflow-hidden">
                 <h3 className={`font-black text-gray-900 leading-tight flex-1 break-all ${current.question && current.question.length > 100 ? 'text-2xl' : 'text-3xl md:text-4xl'}`}>
                   {current.question}
                 </h3>
-                <div className="bg-primary/5 px-4 py-2 rounded-xl border border-primary/10 flex items-center gap-2">
+                <div className="bg-primary/5 px-4 py-2 rounded-xl border border-primary/10 flex items-center gap-2 shrink-0">
                   <Zap size={14} className="text-primary" />
                   <span className="text-[10px] font-bold text-primary uppercase tracking-widest">
                     {room?.questions?.[currentIdx]?.difficulty || "NORMAL"} MODE (+{room?.questions?.[currentIdx]?.difficulty === "hard" ? 100 : room?.questions?.[currentIdx]?.difficulty === "easy" ? 25 : 50} XP)
@@ -266,13 +258,22 @@ export default function ActiveQuiz({ onFinish, room, user }: ActiveQuizProps) {
                 </div>
               </div>
 
-              <MultipleChoiceView 
-                question={current.question || ""} 
-                options={current.options?.map((o) => o.text) || []} 
-                selectedOption={studentAnswers[currentIdx]}
-                multiSelect={current.type === "CHK"}
-                onSelect={(idx: number | number[]) => setStudentAnswers({ ...studentAnswers, [currentIdx]: idx })}
-              />
+              {current.type === "ESS" ? (
+                <EssayView 
+                  question={current.question || ""} 
+                  targetWords={current.targetWords || { min: 10, max: 500 }} 
+                  value={studentAnswers[currentIdx] || ""}
+                  onChange={(val: string) => setStudentAnswers({ ...studentAnswers, [currentIdx]: val })}
+                />
+              ) : (
+                <MultipleChoiceView 
+                  question={current.question || ""} 
+                  options={current.options?.map((o) => o.text) || []} 
+                  selectedOption={studentAnswers[currentIdx]}
+                  multiSelect={current.type === "CHK"}
+                  onSelect={(idx: number | number[]) => setStudentAnswers({ ...studentAnswers, [currentIdx]: idx })}
+                />
+              )}
             </div>
           )}
         </div>

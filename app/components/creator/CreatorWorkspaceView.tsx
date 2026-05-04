@@ -9,6 +9,7 @@ import {
   Plus,
   Monitor,
   Play,
+  Pause,
   Square,
   Trash2,
   Eye,
@@ -91,9 +92,9 @@ export default function CreatorWorkspaceView({ onCreateRoom, onOpenRoom, rooms: 
       const uniqueStudents = new Set<string>();
 
       try {
-        // Fetch participants for all rooms
+        // Fetch ALL participants for all rooms to count unique candidates and calculate performance
         const participantPromises = rooms.map(room => 
-          getDocs(query(collection(db, "rooms", room.id, "participants"), where("status", "==", "COMPLETED")))
+          getDocs(collection(db, "rooms", room.id, "participants"))
         );
 
         const snapshots = await Promise.all(participantPromises);
@@ -101,24 +102,30 @@ export default function CreatorWorkspaceView({ onCreateRoom, onOpenRoom, rooms: 
         snapshots.forEach(snapshot => {
           snapshot.docs.forEach(doc => {
             const data = doc.data();
-            uniqueStudents.add(doc.id); // doc.id is the student's UID
-            totalTime += data.totalTimeMs || 0;
-            totalAccuracy += data.accuracy || 0;
-            completionCount++;
+            
+            // 1. Unique Candidates (Includes everyone who joined)
+            uniqueStudents.add(doc.id); 
+
+            // 2. Performance Stats (Only for those who finished)
+            // Finished status can be 'COMPLETED' (Essay waiting) or 'graded' (Auto-graded)
+            if (data.status === "COMPLETED" || data.status === "graded") {
+              totalTime += data.totalTimeMs || 0;
+              totalAccuracy += data.accuracy || 0;
+              completionCount++;
+            }
           });
         });
 
-        if (completionCount > 0) {
-          const avgTimeMs = totalTime / completionCount;
-          const minutes = Math.floor(avgTimeMs / 60000);
-          const seconds = Math.floor((avgTimeMs % 60000) / 1000);
-          
-          setStats({
-            totalCandidates: uniqueStudents.size,
-            avgCompletion: `${minutes}m ${seconds}s`,
-            globalAccuracy: `${(totalAccuracy / completionCount).toFixed(1)}%`
-          });
-        }
+        const avgTimeMs = completionCount > 0 ? totalTime / completionCount : 0;
+        const minutes = Math.floor(avgTimeMs / 60000);
+        const seconds = Math.floor((avgTimeMs % 60000) / 1000);
+        const avgAcc = completionCount > 0 ? (totalAccuracy / completionCount) : 0;
+
+        setStats({
+          totalCandidates: uniqueStudents.size,
+          avgCompletion: `${minutes}m ${seconds}s`,
+          globalAccuracy: `${avgAcc.toFixed(1)}%`
+        });
       } catch (error) {
         console.error("Error calculating workspace stats:", error);
       }
@@ -130,7 +137,7 @@ export default function CreatorWorkspaceView({ onCreateRoom, onOpenRoom, rooms: 
   const totalCandidates = rooms.reduce((acc, room) => acc + (room.participantsCount || 0), 0);
 
   const handleToggleStatus = async (e: React.MouseEvent, room: any) => {
-    e.stopPropagation(); // Prevent opening the room
+    e.stopPropagation();
     const roomRef = doc(db, "rooms", room.id);
     
     if (room.status === "LIVE") {
@@ -275,6 +282,7 @@ export default function CreatorWorkspaceView({ onCreateRoom, onOpenRoom, rooms: 
 
                   <span className={`px-5 py-1.5 rounded-full text-[10px] font-black tracking-widest ${
                     room.status === 'LIVE' ? 'bg-[#ECFDF5] text-[#10B981]' :
+                    room.status === 'WAITING' ? 'bg-amber-50 text-amber-600' :
                     room.status === 'ENDED' ? 'bg-[#F1F5F9] text-[#94A3B8]' :
                     'bg-[#EEF2FF] text-[#2563EB]'
                   }`}>
@@ -287,9 +295,9 @@ export default function CreatorWorkspaceView({ onCreateRoom, onOpenRoom, rooms: 
                       className={`p-2.5 rounded-xl transition-all ${
                         room.status === "LIVE" 
                         ? "text-red-500 hover:bg-red-50" 
-                        : "text-[#10B981] hover:bg-[#ECFDF5]"
+                        : "text-[#2563EB] hover:bg-[#EEF2FF]"
                       }`}
-                      title={room.status === "LIVE" ? "Stop Quiz" : "Start Quiz"}
+                      title={room.status === "LIVE" ? "End Session" : "Start Quiz"}
                     >
                       {room.status === "LIVE" ? <Square size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
                     </button>
