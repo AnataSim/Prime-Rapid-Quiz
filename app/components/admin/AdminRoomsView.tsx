@@ -22,6 +22,7 @@ export default function AdminRoomsView({ rooms = [], setRooms }: { rooms?: any[]
   const [isLoading, setIsLoading] = useState(true);
   const [totalGlobalParticipants, setTotalGlobalParticipants] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [creatorProfiles, setCreatorProfiles] = useState<{[key: string]: any}>({});
   const itemsPerPage = 5;
 
   useEffect(() => {
@@ -32,7 +33,10 @@ export default function AdminRoomsView({ rooms = [], setRooms }: { rooms?: any[]
         ...doc.data(),
         status: (doc.data().status || "DRAFT").toUpperCase(),
         participantsCount: doc.data().participantsCount || 0,
-        creator: doc.data().creator || "Creator"
+        // Fallbacks for older rooms that don't have embedded profile data
+        embeddedCreatorName: doc.data().creatorName,
+        embeddedCreatorPhoto: doc.data().creatorPhotoURL,
+        creatorId: doc.data().creatorId
       }));
       roomsData.sort((a: any, b: any) => {
         const timeA = a.createdAt?.toMillis() || 0;
@@ -56,6 +60,39 @@ export default function AdminRoomsView({ rooms = [], setRooms }: { rooms?: any[]
       unsubscribeParticipants();
     };
   }, []);
+
+  // Fetch missing creator profiles
+  useEffect(() => {
+    const missingIds = displayRooms
+      .map(r => r.creatorId)
+      .filter(id => id && !creatorProfiles[id] && !displayRooms.find(dr => dr.creatorId === id)?.embeddedCreatorName);
+    
+    if (missingIds.length === 0) return;
+
+    const uniqueMissingIds = Array.from(new Set(missingIds));
+    
+    const fetchProfiles = async () => {
+      const { getDoc, doc } = await import("firebase/firestore");
+      const newProfiles = { ...creatorProfiles };
+      
+      await Promise.all(uniqueMissingIds.map(async (id) => {
+        try {
+          const userSnap = await getDoc(doc(db, "users", id));
+          if (userSnap.exists()) {
+            newProfiles[id] = userSnap.data();
+          } else {
+            newProfiles[id] = { fullName: "Unknown Creator" };
+          }
+        } catch (e) {
+          console.error("Error fetching creator profile:", e);
+        }
+      }));
+      
+      setCreatorProfiles(newProfiles);
+    };
+
+    fetchProfiles();
+  }, [displayRooms]);
 
   const filteredRooms = activeTab === "All Rooms" 
     ? displayRooms 
@@ -153,12 +190,19 @@ export default function AdminRoomsView({ rooms = [], setRooms }: { rooms?: any[]
                   </div>
                 </td>
                 <td className="px-10 py-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-100">
-                      <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${room.creator || 'Creator'}`} alt={room.creator || 'Creator'} className="w-full h-full object-cover" />
-                    </div>
-                    <span className="text-[13px] font-bold text-[#475569]">{room.creator || 'Creator'}</span>
-                  </div>
+                  {(() => {
+                    const name = room.embeddedCreatorName || creatorProfiles[room.creatorId]?.fullName || "Quiz Creator";
+                    const photo = room.embeddedCreatorPhoto || creatorProfiles[room.creatorId]?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`;
+                    
+                    return (
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-100 bg-gray-50">
+                          <img src={photo} alt={name} className="w-full h-full object-cover" />
+                        </div>
+                        <span className="text-[13px] font-bold text-[#475569]">{name}</span>
+                      </div>
+                    );
+                  })()}
                 </td>
                 <td className="px-10 py-6 text-center">
                   <span className="px-4 py-1 bg-[#EEF2FF] text-[#2563EB] text-[12px] font-black rounded-lg">

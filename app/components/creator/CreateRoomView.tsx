@@ -50,7 +50,9 @@ export default function CreateRoomView({ onContinue, onCancel, roomTitle = "", s
         createdAt: serverTimestamp(),
         status: "DRAFT",
         participantsCount: 0,
-        creatorId: auth.currentUser?.uid || null // Ensure this is never undefined
+        creatorId: auth.currentUser?.uid || null,
+        creatorName: auth.currentUser?.displayName || "Quiz Creator",
+        creatorPhotoURL: auth.currentUser?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${auth.currentUser?.email || "Creator"}`
       };
 
       const docRef = await addDoc(collection(db, "rooms"), roomData);

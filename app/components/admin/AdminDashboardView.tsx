@@ -129,9 +129,20 @@ export default function AdminDashboardView({ logs, rooms: propRooms }: { logs?: 
                   </div>
                   <div className="space-y-1">
                     <h3 className="text-[17px] font-black text-[#1E293B] group-hover:text-[#2563EB] transition-colors">{room.title}</h3>
-                    <p className="text-[13px] text-[#94A3B8] font-medium">
-                      Created: {room.createdAt?.toDate ? room.createdAt.toDate().toLocaleDateString() : 'N/A'} • {room.questionsCount || 0} Questions
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100">
+                        <img 
+                          src={room.creatorPhotoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${room.creatorName || 'Creator'}`} 
+                          className="w-4 h-4 rounded-full" 
+                          alt="Creator"
+                        />
+                        <span className="text-[10px] font-bold text-gray-600">{room.creatorName || "Creator"}</span>
+                      </div>
+                      <span className="text-gray-200">•</span>
+                      <p className="text-[11px] text-[#94A3B8] font-medium">
+                        {room.createdAt?.toDate ? room.createdAt.toDate().toLocaleDateString() : 'N/A'} • {room.questionsCount || 0} Questions
+                      </p>
+                    </div>
                   </div>
                 </div>
 
