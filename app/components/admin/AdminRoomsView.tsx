@@ -61,38 +61,25 @@ export default function AdminRoomsView({ rooms = [], setRooms }: { rooms?: any[]
     };
   }, []);
 
-  // Fetch missing creator profiles
+  // Fetch all users via secure API to bypass Firestore rules in production
   useEffect(() => {
-    const missingIds = displayRooms
-      .map(r => r.creatorId)
-      .filter(id => id && !creatorProfiles[id] && !displayRooms.find(dr => dr.creatorId === id)?.embeddedCreatorName);
-    
-    if (missingIds.length === 0) return;
-
-    const uniqueMissingIds = Array.from(new Set(missingIds));
-    
-    const fetchProfiles = async () => {
-      const { getDoc, doc } = await import("firebase/firestore");
-      const newProfiles = { ...creatorProfiles };
-      
-      await Promise.all(uniqueMissingIds.map(async (id) => {
-        try {
-          const userSnap = await getDoc(doc(db, "users", id));
-          if (userSnap.exists()) {
-            newProfiles[id] = userSnap.data();
-          } else {
-            newProfiles[id] = { fullName: "Unknown Creator" };
-          }
-        } catch (e) {
-          console.error("Error fetching creator profile:", e);
+    const fetchUsersMap = async () => {
+      try {
+        const res = await fetch("/api/admin/users");
+        if (res.ok) {
+          const data = await res.json();
+          const usersMap: {[key: string]: any} = {};
+          data.users.forEach((u: any) => {
+            usersMap[u.id] = u;
+          });
+          setCreatorProfiles(usersMap);
         }
-      }));
-      
-      setCreatorProfiles(newProfiles);
+      } catch (err) {
+        console.error("Error loading users map:", err);
+      }
     };
-
-    fetchProfiles();
-  }, [displayRooms]);
+    fetchUsersMap();
+  }, []);
 
   const filteredRooms = activeTab === "All Rooms" 
     ? displayRooms 
